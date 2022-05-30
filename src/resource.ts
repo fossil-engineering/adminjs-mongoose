@@ -108,7 +108,8 @@ class Resource extends BaseResource {
 
     async create(params) {
       const parsedParams = this.parseParams(params)
-      let mongooseDocument = new this.MongooseModel(parsedParams)
+      const unflattedParams = flat.unflatten(parsedParams)
+      let mongooseDocument = new this.MongooseModel(unflattedParams)
       try {
         mongooseDocument = await mongooseDocument.save()
       } catch (error) {
@@ -126,11 +127,15 @@ class Resource extends BaseResource {
     async update(id, params) {
       const parsedParams = this.parseParams(params)
       const unflattedParams = flat.unflatten(parsedParams)
+
+       // translate alias to real field name for mongoose
+       const translatedAliasParams = this.MongooseModel.translateAliases(unflattedParams)
+
       try {
         const mongooseObject = await this.MongooseModel.findOneAndUpdate({
           _id: id,
         }, {
-          $set: unflattedParams,
+          $set: translatedAliasParams,
         }, {
           new: true,
           runValidators: true,
