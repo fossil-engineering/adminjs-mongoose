@@ -1,5 +1,5 @@
 {
-  "name": "@adminjs/mongoose",
+  "name": "@fossil-engineering/mongoose",
   "version": "3.0.0",
   "description": "Mongoose adapter for adminjs",
   "main": "lib/index.js",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SoftwareBrothers/adminjs-mongoose.git"
+    "url": "git+https://github.com/fossil-engineering/adminjs-mongoose.git"
   },
   "author": "Wojciech Krysiak",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/SoftwareBrothers/adminjs-mongoose/issues"
+    "url": "https://github.com/fossil-engineering/adminjs-mongoose/issues"
   },
-  "homepage": "https://github.com/SoftwareBrothers/adminjs-mongoose#readme",
+  "homepage": "https://github.com/fossil-engineering/adminjs-mongoose#readme",
   "peerDependencies": {
     "adminjs": ">=6.0.0",
     "mongoose": ">=5"
