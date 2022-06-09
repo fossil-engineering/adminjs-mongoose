@@ -68,7 +68,8 @@ class Resource extends BaseResource {
 
     async count(filters = null) {
       if (Object.keys(convertFilter(filters)).length > 0) {
-        return this.MongooseModel.count(convertFilter(filters))
+        const q = this.MongooseModel.translateAliases(convertFilter(filters))
+        return this.MongooseModel.count(q)
       }
       return this.MongooseModel.estimatedDocumentCount()
     }
@@ -79,7 +80,7 @@ class Resource extends BaseResource {
         [sortBy]: direction,
       }
       const mongooseObjects = await this.MongooseModel
-        .find(convertFilter(filters), {}, {
+        .find(this.MongooseModel.translateAliases(convertFilter(filters)), {}, {
           skip: offset, limit, sort: sortingParam,
         })
       return mongooseObjects.map(mongooseObject => new BaseRecord(
@@ -128,8 +129,8 @@ class Resource extends BaseResource {
       const parsedParams = this.parseParams(params)
       const unflattedParams = flat.unflatten(parsedParams)
 
-       // translate alias to real field name for mongoose
-       const translatedAliasParams = this.MongooseModel.translateAliases(unflattedParams)
+      // translate alias to real field name for mongoose
+      const translatedAliasParams = this.MongooseModel.translateAliases(unflattedParams)
 
       try {
         const mongooseObject = await this.MongooseModel.findOneAndUpdate({
