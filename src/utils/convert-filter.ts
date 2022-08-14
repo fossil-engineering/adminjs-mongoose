@@ -1,3 +1,4 @@
+import { flat } from 'adminjs'
 import escape from 'escape-regexp'
 import mongoose from 'mongoose'
 
@@ -11,8 +12,29 @@ export const convertFilter = (filter) => {
   if (!filter) {
     return {}
   }
+
+  const filters = flat.unflatten(filter.filters)
+  Object.keys(filters).forEach((key) => {
+    if (!Array.isArray(filters[key])) {
+      return
+    }
+
+    filters.filters[key] = {
+      path: key,
+      value: filters[key].map(f => f.value),
+    }
+  })
+
   return filter.reduce((memo, filterProperty) => {
-    const { property, value } = filterProperty
+    const { property, path, value } = filterProperty
+
+    if (!property && path) {
+      return {
+        [path]: { $in: value },
+        ...memo,
+      }
+    }
+
     switch (property.type()) {
     case 'string':
       return {
