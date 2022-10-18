@@ -15,6 +15,41 @@ export const convertFilter = (filter) => {
     const { property, value } = filterProperty
     switch (property.type()) {
     case 'string':
+      if (typeof value === 'object') {
+        if (value.equal) {
+          return {
+            [property.name()]: { $regex: `^${escape(value.equal)}$`, $options: 'i' },
+            ...memo,
+          }
+        }
+
+        if (value.start_with) {
+          return {
+            [property.name()]: { $regex: `^${escape(value.start_with)}`, $options: 'i' },
+            ...memo,
+          }
+        }
+
+        if (value.end_with) {
+          return {
+            [property.name()]: { $regex: `${escape(value.end_with)}$`, $options: 'i' },
+            ...memo,
+          }
+        }
+
+        if (value.contains) {
+          return {
+            [property.name()]: { $regex: escape(value.contains), $options: 'i' },
+            ...memo,
+          }
+        }
+
+        return {
+          [property.name()]: { $regex: '', $options: 'i' },
+          ...memo,
+        }
+      }
+
       return {
         [property.name()]: { $regex: escape(value), $options: 'i' },
         ...memo,
