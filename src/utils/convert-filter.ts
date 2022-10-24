@@ -36,68 +36,68 @@ export const convertFilter = (filter) => {
     }
 
     switch (property.type()) {
-      case 'string':
-        if (typeof value === 'object') {
-          if (value.equal) {
-            return {
-              [property.name()]: { $regex: `^${escape(value.equal)}$`, $options: 'i' },
-              ...memo,
-            }
-          }
-
-          if (value.start_with) {
-            return {
-              [property.name()]: { $regex: `^${escape(value.start_with)}`, $options: 'i' },
-              ...memo,
-            }
-          }
-
-          if (value.end_with) {
-            return {
-              [property.name()]: { $regex: `${escape(value.end_with)}$`, $options: 'i' },
-              ...memo,
-            }
-          }
-
-          if (value.contains) {
-            return {
-              [property.name()]: { $regex: escape(value.contains), $options: 'i' },
-              ...memo,
-            }
-          }
-
+    case 'string':
+      if (typeof value === 'object') {
+        if (value.equal) {
           return {
-            [property.name()]: { $regex: '', $options: 'i' },
+            [property.name()]: { $regex: `^${escape(value.equal)}$`, $options: 'i' },
+            ...memo,
+          }
+        }
+
+        if (value.start_with) {
+          return {
+            [property.name()]: { $regex: `^${escape(value.start_with)}`, $options: 'i' },
+            ...memo,
+          }
+        }
+
+        if (value.end_with) {
+          return {
+            [property.name()]: { $regex: `${escape(value.end_with)}$`, $options: 'i' },
+            ...memo,
+          }
+        }
+
+        if (value.contains) {
+          return {
+            [property.name()]: { $regex: escape(value.contains), $options: 'i' },
             ...memo,
           }
         }
 
         return {
-          [property.name()]: { $regex: escape(value), $options: 'i' },
+          [property.name()]: { $regex: '', $options: 'i' },
           ...memo,
         }
-      case 'date':
-      case 'datetime':
-        if (value.from || value.to) {
-          return {
-            [property.name()]: {
-              ...value.from && { $gte: value.from },
-              ...value.to && { $lte: value.to },
-            },
-            ...memo,
-          }
+      }
+
+      return {
+        [property.name()]: { $regex: escape(value), $options: 'i' },
+        ...memo,
+      }
+    case 'date':
+    case 'datetime':
+      if (value.from || value.to) {
+        return {
+          [property.name()]: {
+            ...value.from && { $gte: value.from },
+            ...value.to && { $lte: value.to },
+          },
+          ...memo,
         }
-        break
-      case 'id':
-        if (mongoose.Types.ObjectId.isValid(value)) {
-          return {
-            [property.name()]: value,
-            ...memo,
-          }
+      }
+      break
+    case 'id':
+      if (mongoose.Types.ObjectId.isValid(value)) {
+        return {
+          [property.name()]: value,
+          ...memo,
         }
-        return {}
-      default:
-        break
+      }
+      return {}
+    default:
+      break
     }
     return {
       [property.name()]: value,
