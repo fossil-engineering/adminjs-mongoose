@@ -1,3 +1,4 @@
+import { flat } from 'adminjs'
 import escape from 'escape-regexp'
 import mongoose from 'mongoose'
 
@@ -11,71 +12,92 @@ export const convertFilter = (filter) => {
   if (!filter) {
     return {}
   }
+
+  const filters = flat.unflatten(filter.filters)
+  Object.keys(filters).forEach((key) => {
+    if (!Array.isArray(filters[key])) {
+      return
+    }
+
+    filters.filters[key] = {
+      path: key,
+      value: filters[key].map(f => f.value),
+    }
+  })
+
   return filter.reduce((memo, filterProperty) => {
-    const { property, value } = filterProperty
-    switch (property.type()) {
-    case 'string':
-      if (typeof value === 'object') {
-        if (value.equal) {
-          return {
-            [property.name()]: { $regex: `^${escape(value.equal)}$`, $options: 'i' },
-            ...memo,
-          }
-        }
+    const { property, path, value } = filterProperty
 
-        if (value.start_with) {
-          return {
-            [property.name()]: { $regex: `^${escape(value.start_with)}`, $options: 'i' },
-            ...memo,
-          }
-        }
-
-        if (value.end_with) {
-          return {
-            [property.name()]: { $regex: `${escape(value.end_with)}$`, $options: 'i' },
-            ...memo,
-          }
-        }
-
-        if (value.contains) {
-          return {
-            [property.name()]: { $regex: escape(value.contains), $options: 'i' },
-            ...memo,
-          }
-        }
-
-        return {
-          [property.name()]: { $regex: '', $options: 'i' },
-          ...memo,
-        }
-      }
-
+    if (!property && path) {
       return {
-        [property.name()]: { $regex: escape(value), $options: 'i' },
+        [path]: { $in: value },
         ...memo,
       }
-    case 'date':
-    case 'datetime':
-      if (value.from || value.to) {
+    }
+
+    switch (property.type()) {
+      case 'string':
+        if (typeof value === 'object') {
+          if (value.equal) {
+            return {
+              [property.name()]: { $regex: `^${escape(value.equal)}$`, $options: 'i' },
+              ...memo,
+            }
+          }
+
+          if (value.start_with) {
+            return {
+              [property.name()]: { $regex: `^${escape(value.start_with)}`, $options: 'i' },
+              ...memo,
+            }
+          }
+
+          if (value.end_with) {
+            return {
+              [property.name()]: { $regex: `${escape(value.end_with)}$`, $options: 'i' },
+              ...memo,
+            }
+          }
+
+          if (value.contains) {
+            return {
+              [property.name()]: { $regex: escape(value.contains), $options: 'i' },
+              ...memo,
+            }
+          }
+
+          return {
+            [property.name()]: { $regex: '', $options: 'i' },
+            ...memo,
+          }
+        }
+
         return {
-          [property.name()]: {
-            ...value.from && { $gte: value.from },
-            ...value.to && { $lte: value.to },
-          },
+          [property.name()]: { $regex: escape(value), $options: 'i' },
           ...memo,
         }
-      }
-      break
-    case 'id':
-      if (mongoose.Types.ObjectId.isValid(value)) {
-        return {
-          [property.name()]: value,
-          ...memo,
+      case 'date':
+      case 'datetime':
+        if (value.from || value.to) {
+          return {
+            [property.name()]: {
+              ...value.from && { $gte: value.from },
+              ...value.to && { $lte: value.to },
+            },
+            ...memo,
+          }
         }
-      }
-      return {}
-    default:
-      break
+        break
+      case 'id':
+        if (mongoose.Types.ObjectId.isValid(value)) {
+          return {
+            [property.name()]: value,
+            ...memo,
+          }
+        }
+        return {}
+      default:
+        break
     }
     return {
       [property.name()]: value,
