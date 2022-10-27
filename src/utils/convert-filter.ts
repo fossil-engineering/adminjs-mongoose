@@ -15,15 +15,18 @@ export const convertFilter = (filter) => {
 
   const filters = flat.unflatten(filter.filters)
   Object.keys(filters).forEach((key) => {
-    if (!Array.isArray(filters[key])) {
-      return
-    }
+    if (!Array.isArray(filters[key])) return;
 
-    filters.filters[key] = {
+    const reg = new RegExp(`^${escape(key)}.[0-9]+`);
+    Object.keys(filter.filters).forEach(oldKey => {
+      if (reg.test(oldKey)) delete filter.filters[oldKey];
+    })
+
+    filter.filters[key] = {
       path: key,
       value: filters[key].map(f => f.value),
-    }
-  })
+    };
+  });
 
   return filter.reduce((memo, filterProperty) => {
     const { property, path, value } = filterProperty
